@@ -5,13 +5,13 @@ import riot_api
 from random import randint
 from db_handler import *
 
-
 discord_token = os.getenv('DISCORD_TOKEN')
 league_token = os.getenv('LEAGUE_API_TOKEN')
 
-ori = commands.Bot(command_prefix='!ori ')
 
 embed_color = 0xdfdf00
+
+ori = commands.Bot(command_prefix='!ori ')
 
 @ori.event
 async def on_ready():
@@ -62,10 +62,11 @@ async def add(ctx, summoner_name):
 
     # Send message to confirm summoner has been mapped to author's discord account
     if created:
-        file=discord.File("dragontail-9.23.1/9.23.1/img/profileicon/{}".format(summoner_image),
+        version = riot_api.league_version
+        file=discord.File("dragontail-{}/{}/img/profileicon/{}".format(version, version, summoner_image),
                           filename=summoner_image)
         embed=discord.Embed(
-            title=summoner_name,
+            title=<"attachment://{}".format(summoner_image)>,
             description="This summoner is now linked to your account!",
             color=0xdfdf00
         )
@@ -169,5 +170,10 @@ async def dick_size(ctx, user):
     await ctx.send(f"{user} has a {value}-inch penis.")
 
 
-ori.run(discord_token)
 
+cache_champion_data()
+print(champion_data_by_name)
+
+
+
+# ori.run(discord_token)

@@ -2,9 +2,15 @@ import requests
 import os
 from dotenv import load_dotenv
 import json
+from discord import File as discord_file
+
 
 load_dotenv()
 riot_token = os.getenv('LEAGUE_API_TOKEN')
+
+league_version = None
+champion_data_by_name = {}
+champion_data_by_id = {}
 
 headers = {
     "Origin": "https://developer.riotgames.com",
@@ -25,6 +31,7 @@ errors = {400: 'Bad request',
           502: 'Bad gateway',
           503: 'Service unavailable',
           504: 'Gateway timeout',}
+
 
 def call_summonerByName(summoner_name):
         # response example:
@@ -98,4 +105,29 @@ def call_championList():
         champion_list[int(champion['key'])] = champion['name']
     return champion_list
 
+
+def cache_league_version():
+    response = requests.get("https://ddragon.leagueoflegends.com/api/versions.json")
+    data = response.json()
+    league_version = data[0]
+
+def cache_champion_data():
+    version = league_version
+    with open("dragontail-{}/{}/data/en_US/champion.json".format(version, version), encoding='utf8') as json_file:
+        data = json.load(json_file)['data']
+        champion_data_by_name.update(data)
+        temp_dict = {}
+        for key, value in data.items():
+            temp_dict[value['key']] = value
+        champion_data_by_id.update(temp_dict)
+
+def get_champion_thumbnail(id):
+    version = league_version
+    image_name = champion_data_by_id[id]['image']['full']
+    file = discord_file("dragontail-{}/{}/img/champion/{}".format(version, version, image_name),
+                        filename=image_name)
+    return file
+
+cache_league_version()
+cache_champion_data()
 
