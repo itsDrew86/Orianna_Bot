@@ -8,7 +8,7 @@ from discord import File as discord_file
 load_dotenv()
 riot_token = os.getenv('LEAGUE_API_TOKEN')
 
-league_version = None
+
 champion_data_by_name = {}
 champion_data_by_id = {}
 
@@ -32,6 +32,9 @@ errors = {400: 'Bad request',
           503: 'Service unavailable',
           504: 'Gateway timeout',}
 
+def get_request_error(err):
+    pass
+
 
 def call_summonerByName(summoner_name):
         # response example:
@@ -47,7 +50,10 @@ def call_summonerByName(summoner_name):
         response = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}",
                                 headers=headers)
         data = response.json()
-        return data
+        print(response.status_code)
+        print(data)
+        return response.status_code, data
+
 
 def call_summonerById(summoner_id):
     # response example:
@@ -109,7 +115,7 @@ def call_championList():
 def cache_league_version():
     response = requests.get("https://ddragon.leagueoflegends.com/api/versions.json")
     data = response.json()
-    league_version = data[0]
+    return data[0]
 
 def cache_champion_data():
     version = league_version
@@ -128,6 +134,6 @@ def get_champion_thumbnail(id):
                         filename=image_name)
     return file
 
-cache_league_version()
+league_version = cache_league_version()
 cache_champion_data()
 

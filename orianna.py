@@ -3,7 +3,7 @@ import discord
 from discord.ext import commands
 import riot_api
 from random import randint
-from db_handler import *
+import db_handler
 
 discord_token = os.getenv('DISCORD_TOKEN')
 league_token = os.getenv('LEAGUE_API_TOKEN')
@@ -25,10 +25,10 @@ async def add(ctx, summoner_name):
     author = ctx.message.author
 
     # Check if the author is in the user database already.
-    db_summoner_name = get_summoner_name(author.id)
+    db_summoner_name = db_handler.get_summoner_name(author.id)
     if db_summoner_name != False:
 
-        # Let the author know that the account already exists
+        # Let the author know their account is already linked to a summoner
         embed=discord.Embed(
             title="<:no_entry_sign:647646871459987458>  Orianna Add Command",
             description="**{}** is already linked to your account!\n"
@@ -38,16 +38,36 @@ async def add(ctx, summoner_name):
         await ctx.send(embed=embed)
         return
 
-    # Else if the author is not already in the database, add them
+    # Else if the author is not already in the database, try to add them
 
     # Get the summoner Data
-    summoner_data = riot_api.call_summonerByName(summoner_name)
-    print(summoner_data)
-    try:
+    response_status, summoner_data = riot_api.call_summonerByName(summoner_name)
+
+    async def create_user():
         summoner_id = summoner_data['id']
         profile_icon_id = summoner_data['profileIconId']
         summoner_image = "{}.png".format(profile_icon_id)
-    except KeyError:
+
+        # Add the author and summoner name to the user database
+        created = db_handler.create_user(author.id, author.name, summoner_name, summoner_id)
+
+        # Send message to confirm summoner has been mapped to author's discord account
+        if created:
+            version = riot_api.league_version
+            file = discord.File("dragontail-{}/{}/img/profileicon/{}".format(version, version, summoner_image),
+                                filename=summoner_image)
+            embed = discord.Embed(
+                title="{}".format(summoner_name),
+                description="This summoner is now linked to your account!",
+                color=0xdfdf00
+            )
+            embed.set_thumbnail(url="attachment://{}".format(summoner_image))
+            await ctx.send(file=file, embed=embed)
+            print("{} assigned to {}, ID: {}".format(summoner_name, author, author.id))
+        else:
+            await ctx.send("There was a problem adding {} to your adding".format(summoner_name))
+
+    async def does_not_exist():
         embed = discord.Embed(
             title='<:no_entry_sign:647646871459987458>  Orianna Add Command',
             description="Summoner does not exist in this region",
@@ -56,27 +76,14 @@ async def add(ctx, summoner_name):
         await ctx.send(embed=embed)
         return
 
-
-    # Add the author and summoner name to the user database
-    created = create_user(author.id, author.name, summoner_name, summoner_id)
-
-    # Send message to confirm summoner has been mapped to author's discord account
-    if created:
-        version = riot_api.league_version
-        file=discord.File("dragontail-{}/{}/img/profileicon/{}".format(version, version, summoner_image),
-                          filename=summoner_image)
-        embed=discord.Embed(
-            title=<"attachment://{}".format(summoner_image)>,
-            description="This summoner is now linked to your account!",
-            color=0xdfdf00
-        )
-        embed.set_thumbnail(url="attachment://{}".format(summoner_image))
-        await ctx.send(file=file, embed=embed)
-        print("{} assigned to {}, ID: {}".format(summoner_name, author, author.id))
-    else:
-        await ctx.send("There was a problem adding {} to your adding".format(summoner_name))
-
-
+    dispatcher = {200: create_user,
+                  404: does_not_exist,
+                  }
+    try:
+        await dispatcher[response_status]()
+        return
+    except KeyError:
+        print("Ori Add Command: {} code not in dispatcher".format(response_status))
 
 
 @ori.command(name='top5', help='Show your top 5 mastery champions')
@@ -85,8 +92,8 @@ async def top(ctx):
     # Get the command author
     author = ctx.message.author
 
-    db_summoner_id = get_summoner_id(author.id)
-    db_summoner_name = get_summoner_name(author.id)
+    db_summoner_id = db_handler.get_summoner_id(author.id)
+    db_summoner_name = db_handler.get_summoner_name(author.id)
 
     if db_summoner_id != False:
 
@@ -99,41 +106,30 @@ async def top(ctx):
 
         print(type(top_5[0]['championId']))
         print(type(next(iter(champion_list))))
+        description = "Top 5 champions are:\n\n" \
+                      "**Champion/Points**\n"
+        for champ in top_5:
+            description += "**{}**".format(champion_list[champ['championId']]) + "{}\n".format(champ['championPoints'])
 
         embed = discord.Embed(
             title='Mastery: {}'.format(db_summoner_name),
             color=embed_color,
-            description="Top 5 champions with most mastery points\n\n"
-                        "**Champion/Points**\n"
-                        "**{}** - {}\n"
-                        "**{}** - {}\n"
-                        "**{}** - {}\n"
-                        "**{}** - {}\n"
-                        "**{}** - {}".format(
-                top_5[0]['name'], top_5[0]['championPoints'],
-                top_5[1]['name'], top_5[1]['championPoints'],
-                top_5[2]['name'], top_5[2]['championPoints'],
-                top_5[3]['name'], top_5[3]['championPoints'],
-                top_5[4]['name'], top_5[4]['championPoints'],
+            description=description
+            # description="Top 5 champions with most mastery points\n\n"
+            #             "**Champion/Points**\n"
+            #             "**{}** - {}\n"
+            #             "**{}** - {}\n"
+            #             "**{}** - {}\n"
+            #             "**{}** - {}\n"
+            #             "**{}** - {}".format(
+            #     top_5[0]['name'], top_5[0]['championPoints'],
+            #     top_5[1]['name'], top_5[1]['championPoints'],
+            #     top_5[2]['name'], top_5[2]['championPoints'],
+            #     top_5[3]['name'], top_5[3]['championPoints'],
+            #     top_5[4]['name'], top_5[4]['championPoints'],
             )
-        )
-
         await ctx.send(embed=embed)
-        # await ctx.send(
-        #     f"```"
-        #     f"Your top 5 champions are:\n\n"
-        #     f"1. {top_5[0]['name']}\n"
-        #     f"   Mastery Points: {top_5[0]['championPoints']}\n"
-        #     f"2. {top_5[1]['name']}\n"
-        #     f"   Mastery Points: {top_5[1]['championPoints']}\n"
-        #     f"3. {top_5[2]['name']}\n"
-        #     f"   Mastery Points: {top_5[2]['championPoints']}\n"
-        #     f"4. {top_5[3]['name']}\n"
-        #     f"   Mastery Points: {top_5[3]['championPoints']}\n"
-        #     f"5. {top_5[4]['name']}\n"
-        #     f"   Mastery Points: {top_5[4]['championPoints']}\n"
-        #     f"```"
-        # )
+
 
 @ori.command(name='remove', help='Remove summoner from discord account')
 async def remove(ctx):
@@ -145,7 +141,7 @@ async def remove(ctx):
     # returns (True, Summoner Name) if user exists and is succesfully removed.
     # Otherwise, returns (False, None)
 
-    removed, summoner_name = remove_user(author.id)
+    removed, summoner_name = db_handler.remove_user(author.id)
 
     if removed:
         embed = discord.Embed(
@@ -170,10 +166,4 @@ async def dick_size(ctx, user):
     await ctx.send(f"{user} has a {value}-inch penis.")
 
 
-
-cache_champion_data()
-print(champion_data_by_name)
-
-
-
-# ori.run(discord_token)
+ori.run(discord_token)
