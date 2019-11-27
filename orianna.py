@@ -98,17 +98,15 @@ async def top(ctx):
 
         # API request for summoner's top 5 champion sorted by mastery score
         top_5 = riot_api.call_top_5_mastery(db_summoner_id)
+        champion_list = riot_api.champion_data_by_id
 
-        champion_list = riot_api.call_championList()
-        for champ in top_5:
-            champ['name'] = champion_list[champ['championId']]
 
         print(type(top_5[0]['championId']))
         print(type(next(iter(champion_list))))
         description = "Top 5 champions are:\n\n" \
                       "**Champion/Points**\n"
         for champ in top_5:
-            description += f"**{champion_list[champ['championId']]}** - {champ['championPoints']}\n"
+            description += f"**{champion_list[str(champ['championId'])]['name']}** - {champ['championPoints']}\n"
         embed = discord.Embed(
             title='Mastery: {}'.format(db_summoner_name),
             color=embed_color,
