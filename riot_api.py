@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 import json
 from discord import File as discord_file
+from bs4 import BeautifulSoup
 
 
 load_dotenv()
@@ -31,6 +32,7 @@ errors = {400: 'Bad request',
           502: 'Bad gateway',
           503: 'Service unavailable',
           504: 'Gateway timeout',}
+
 
 def get_request_error(err):
     pass
@@ -70,6 +72,7 @@ def call_summonerById(summoner_id):
     data = response.json()
     return data
 
+
 def call_top_5_mastery(summoner_id):
     # response example:
     # [
@@ -107,15 +110,18 @@ def call_championList():
     champion_list = {}
     response = requests.get("http://ddragon.leagueoflegends.com/cdn/9.23.1/data/en_US/champion.json")
     data = response.json()['data']
+    print(data)
     for champion in data.values():
         champion_list[int(champion['key'])] = champion['name']
+    print(champion_list)
     return champion_list
 
 
-def cache_league_version():
+def get_league_version():
     response = requests.get("https://ddragon.leagueoflegends.com/api/versions.json")
     data = response.json()
     return data[0]
+
 
 def cache_champion_data():
     version = league_version
@@ -127,6 +133,7 @@ def cache_champion_data():
             temp_dict[value['key']] = value
         champion_data_by_id.update(temp_dict)
 
+
 def get_champion_thumbnail(id):
     version = league_version
     image_name = champion_data_by_id[id]['image']['full']
@@ -134,6 +141,40 @@ def get_champion_thumbnail(id):
                         filename=image_name)
     return file
 
-league_version = cache_league_version()
+
+def get_patch_url(game):
+    url = "https://na.leagueoflegends.com/en/news/game-updates/patch"
+
+    raw_html = requests.get(url=url, stream=True)
+    html = BeautifulSoup(raw_html.content, 'html.parser')
+    patches = html.select('h4')
+
+    tft_patch = ''
+    lol_patch = ''
+
+    for patch in patches:
+        if "Tactics" in patch.text and tft_patch == '':
+            tft_patch = patch.text
+            temp_str = ''
+            for char in tft_patch:
+                if char.isdigit():
+                    temp_str += char
+            tft_patch = temp_str
+        if "Tactics" not in patch.text and lol_patch == '':
+            lol_patch = patch.text
+            temp_str = ''
+            for char in lol_patch:
+                if char.isdigit():
+                    temp_str += char
+            lol_patch = temp_str
+
+    if game == 'tft':
+        return tft_patch
+    elif game == 'lol':
+        return lol_patch
+
+league_version = get_league_version()
 cache_champion_data()
+
+
 

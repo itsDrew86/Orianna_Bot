@@ -2,7 +2,6 @@ import os
 import discord
 from discord.ext import commands
 import riot_api
-from random import randint
 import db_handler
 
 discord_token = os.getenv('DISCORD_TOKEN')
@@ -109,25 +108,13 @@ async def top(ctx):
         description = "Top 5 champions are:\n\n" \
                       "**Champion/Points**\n"
         for champ in top_5:
-            description += "**{}**".format(champion_list[champ['championId']]) + "{}\n".format(champ['championPoints'])
-
+            description += f"**{champion_list[champ['championId']]}** - {champ['championPoints']}\n"
         embed = discord.Embed(
             title='Mastery: {}'.format(db_summoner_name),
             color=embed_color,
             description=description
-            # description="Top 5 champions with most mastery points\n\n"
-            #             "**Champion/Points**\n"
-            #             "**{}** - {}\n"
-            #             "**{}** - {}\n"
-            #             "**{}** - {}\n"
-            #             "**{}** - {}\n"
-            #             "**{}** - {}".format(
-            #     top_5[0]['name'], top_5[0]['championPoints'],
-            #     top_5[1]['name'], top_5[1]['championPoints'],
-            #     top_5[2]['name'], top_5[2]['championPoints'],
-            #     top_5[3]['name'], top_5[3]['championPoints'],
-            #     top_5[4]['name'], top_5[4]['championPoints'],
             )
+
         await ctx.send(embed=embed)
 
 
@@ -160,10 +147,48 @@ async def remove(ctx):
         await ctx.send(embed=embed)
 
 
-@ori.command(name='dick', help="Get mentioned user's dick size: !dick [@user]")
-async def dick_size(ctx, user):
-    value = randint(1, 16)
-    await ctx.send(f"{user} has a {value}-inch penis.")
+@ori.command(name='patchnotes', help="Link the latest league of legends patch notes")
+async def patch_notes(ctx, game):
+    if game == 'lol':
+
+        version = riot_api.get_league_version()
+        print(version)
+        patch = ''
+        delimiter_count = 0
+        for char in version:
+            if char != '.':
+                patch += char
+            else:
+                delimiter_count += 1
+            if delimiter_count == 2:
+                break
+        title_patch = "{}.{}{}".format(patch[0], patch[1], patch[2])
+        embed = discord.Embed(
+            title="League of Legends Patch {} Notes".format(title_patch),
+            description="The latest patch notes",
+            color=embed_color,
+            url="https://na.leagueoflegends.com/en/news/game-updates/patch/patch-{}-notes".format(patch)
+
+        )
+        embed.set_image(url="https://na.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/patch_.{}_notes_header.jpg".format(title_patch))
+
+        await ctx.send(embed=embed)
+
+    elif game == 'tft':
+        version = riot_api.get_patch_url('tft')
+        title_patch = "{}.{}{}".format(version[0], version[1], version[2])
+        embed = discord.Embed(
+            title="Teamfight Tactics Patch {} Notes".format(title_patch),
+            description="The latest patch notes",
+            color=embed_color,
+            url="https://na.leagueoflegends.com/en/news/game-updates/patch/teamfight-tactics-patch-{}-notes".format(
+                version)
+        )
+        embed.set_image(
+            url="https://na.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/tft_patch_{}_notes_header.jpg".format(
+                title_patch))
+
+        await ctx.send(embed=embed)
 
 
 ori.run(discord_token)
