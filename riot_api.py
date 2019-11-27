@@ -106,16 +106,6 @@ def call_top_5_mastery(summoner_id):
     print(data)
     return data
 
-def call_championList():
-    champion_list = {}
-    response = requests.get("http://ddragon.leagueoflegends.com/cdn/9.23.1/data/en_US/champion.json")
-    data = response.json()['data']
-    print(data)
-    for champion in data.values():
-        champion_list[int(champion['key'])] = champion['name']
-    print(champion_list)
-    return champion_list
-
 
 def get_league_version():
     response = requests.get("https://ddragon.leagueoflegends.com/api/versions.json")
@@ -175,6 +165,7 @@ def get_patch_url(game):
 
 league_version = get_league_version()
 cache_champion_data()
+print(champion_data_by_id)
 
 
 
