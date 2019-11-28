@@ -3,6 +3,8 @@ import discord
 from discord.ext import commands
 import riot_api
 import db_handler
+import datetime
+import time
 
 discord_token = os.getenv('DISCORD_TOKEN')
 league_token = os.getenv('LEAGUE_API_TOKEN')
@@ -86,34 +88,61 @@ async def add(ctx, summoner_name):
 
 
 @ori.command(name='top5', help='Show your top 5 mastery champions')
-async def top(ctx):
+async def top5(ctx):
 
     # Get the command author
     author = ctx.message.author
 
+    # Try to get summoner id and name from the user database
     db_summoner_id = db_handler.get_summoner_id(author.id)
     db_summoner_name = db_handler.get_summoner_name(author.id)
 
+    # If user exists in database, then do the following
     if db_summoner_id != False:
 
-        # API request for summoner's top 5 champion sorted by mastery score
+        # API request for summoner's top 5 champion sorted by mastery score and get cached champion list
         top_5 = riot_api.call_top_5_mastery(db_summoner_id)
         champion_list = riot_api.champion_data_by_id
 
+        # API request for fresh summoner data (to get most up-to-date profile icon)
+        summoner_data = riot_api.call_summonerById(db_summoner_id)
 
-        print(type(top_5[0]['championId']))
-        print(type(next(iter(champion_list))))
-        description = "Top 5 champions are:\n\n" \
-                      "**Champion/Points**\n"
-        for champ in top_5:
-            description += f"**{champion_list[str(champ['championId'])]['name']}** - {champ['championPoints']}\n"
+        # Get profile icon id from summoner data dict
+        profile_icon_id = summoner_data['profileIconId']
+        summoner_image_file = "{}.png".format(profile_icon_id)
+
+
+        # Get league version
+        version = riot_api.league_version
+
+        file = discord.File("dragontail-{}/{}/img/profileicon/{}".format(version, version, summoner_image_file),
+                            filename=summoner_image_file)
+        # for champ in top_5:
+        #     description += f"**{champion_list[str(champ['championId'])]['name']}** - {champ['championPoints']}\n"
         embed = discord.Embed(
-            title='Mastery: {}'.format(db_summoner_name),
             color=embed_color,
-            description=description
-            )
+            description="Top 5 champions are:"
+        )
 
-        await ctx.send(embed=embed)
+        champ_value = ''
+        points_value = ''
+        last_played_value = ''
+
+
+
+        for champion in top_5:
+            champ_value += "**{}**\n".format(champion_list[str(champion['championId'])]['name'])
+            points_value += "{:,}\n".format(champion['championPoints'])
+            last_played_value += "{}\n".format(datetime.date.fromtimestamp(champion['lastPlayTime']/1000).strftime("%b %d, %Y"))
+
+        embed.set_author(name="Mastery: {}".format(db_summoner_name.title()), icon_url="attachment://{}".format(summoner_image_file))
+        embed.add_field(name="Champion", value=champ_value)
+        embed.add_field(name="Mastery Points", value=points_value)
+        embed.add_field(name="Last Played", value=last_played_value, inline=True)
+
+
+
+        await ctx.send(file=file, embed=embed)
 
 
 @ori.command(name='remove', help='Remove summoner from discord account')
@@ -150,7 +179,6 @@ async def patch_notes(ctx, game):
     if game == 'lol':
 
         version = riot_api.get_league_version()
-        print(version)
         patch = ''
         delimiter_count = 0
         for char in version:
