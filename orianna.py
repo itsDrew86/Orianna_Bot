@@ -46,11 +46,13 @@ async def add(ctx, summoner_name):
 
     async def create_user():
         summoner_id = summoner_data['id']
+        account_id = summoner_data['accountId']
+        puu_id = summoner_data['puuid']
         profile_icon_id = summoner_data['profileIconId']
         summoner_image = "{}.png".format(profile_icon_id)
 
         # Add the author and summoner name to the user database
-        created = db_handler.create_user(author.id, author.name, summoner_name, summoner_id)
+        created = db_handler.create_user(author.id, author.name, summoner_name, summoner_id, account_id, puu_id)
 
         # Send message to confirm summoner has been mapped to author's discord account
         if created:
