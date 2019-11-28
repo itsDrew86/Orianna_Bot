@@ -6,12 +6,12 @@ def db_connection():
     c = conn.cursor()
     return conn, c
 
-def create_user(discord_id, author, summoner_name, summoner_id):
+def create_user(discord_id, author, summoner_name, summoner_id, account_id, puu_id):
     conn, c = db_connection()
-    params = (discord_id, author, summoner_name, summoner_id)
+    params = (discord_id, author, summoner_name, summoner_id, account_id, puu_id)
     try:
         with conn:
-            c.execute("INSERT INTO users VALUES (?, ?, ?, ?)", params)
+            c.execute("INSERT INTO users VALUES (?, ?, ?, ?, ?, ?)", params)
             return True
     except IntegrityError:
         return False
@@ -58,7 +58,30 @@ def get_summoner_id(discord_id):
     except TypeError:
         return False
 
-# print(get_summoner_name('045621045'))
-# print(remove_user('045621045'))
-# print(get_summoner_name('045621045'))
+def get_account_id(discord_id):
 
+    # If user exists in database, return account id
+    # If user does not exist, return False
+
+    conn, c = db_connection()
+    try:
+        with conn:
+            c.execute("SELECT account_id FROM users WHERE discord_id = ?", (discord_id,))
+        account_id = c.fetchone()[0]
+        return account_id
+    except TypeError:
+        return False
+
+def get_puu_id(discord_id):
+
+    # If user exists in database, return puu id
+    # If user does not exist, return False
+
+    conn, c = db_connection()
+    try:
+        with conn:
+            c.execute("SELECT puu_id FROM users WHERE discord_id = ?", (discord_id,))
+        puu_id = c.fetchone()[0]
+        return puu_id
+    except TypeError:
+        return False
