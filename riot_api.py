@@ -52,8 +52,6 @@ def call_summonerByName(summoner_name):
         response = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}",
                                 headers=headers)
         data = response.json()
-        print(response.status_code)
-        print(data)
         return response.status_code, data
 
 
@@ -103,7 +101,6 @@ def call_top_5_mastery(summoner_id):
                             headers=headers)
     data = response.json()
     data = sorted(data, key=lambda x: x['championPoints'], reverse=True)[:5]
-    print(data)
     return data
 
 
@@ -165,7 +162,7 @@ def get_patch_url(game):
 
 league_version = get_league_version()
 cache_champion_data()
-print(champion_data_by_id)
+
 
 
 
