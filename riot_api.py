@@ -64,7 +64,7 @@ def call_summonerById(summoner_id):
     #     "summonerLevel": 182,
     #     "accountId": "gTOFnrmF7aa4VIzLIptO0Gn9Ng7T-JbYhljfkZeN_8SakA",
     #     "id": "TJEAB0ncKyYGWPbXEkFbNoEgkoUMYxJXzgVFQFvmXn8GVKQ",
-    #     "revisionDate": 1574398327000
+#     "revisionDate": 1574398327000
     # }
     response = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/{summoner_id}", headers=headers)
     data = response.json()
@@ -112,7 +112,7 @@ def get_league_version():
 
 def cache_champion_data():
     version = league_version
-    with open("dragontail-{}/{}/data/en_US/champion.json".format(version, version), encoding='utf8') as json_file:
+    with open("dragontail-{}/{}/data/en_US/championFull.json".format(version, version), encoding='utf8') as json_file:
         data = json.load(json_file)['data']
         champion_data_by_name.update(data)
         temp_dict = {}
@@ -162,6 +162,10 @@ def get_patch_url(game):
 
 league_version = get_league_version()
 cache_champion_data()
+
+
+
+
 
 
 
