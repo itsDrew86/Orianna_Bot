@@ -220,9 +220,13 @@ async def patch_notes(ctx, game):
 
 
 @ori.command(name="info", help="get champion info")
-async def info(ctx, champion):
+async def info(ctx, *champion_name):
+    print(champion_name)
+
+    champion = ''.join(word.title() for word in champion_name)
+
     version = riot_api.get_league_version()
-    champion_data = riot_api.champion_data_by_name[champion.title()]
+    champion_data = riot_api.champion_data_by_name[champion]
     stats = champion_data['stats']
     info = champion_data['info']
     spells = champion_data['spells']
@@ -230,7 +234,7 @@ async def info(ctx, champion):
     file = discord.File("dragontail-{}/{}/img/champion/{}".format(version, version, champion_thumbnail),
                         filename=f"{champion_thumbnail}")
     embed = discord.Embed(
-        description="{}, {}:".format(champion.title(), champion_data['title']),
+        description="{}, {}:".format(champion, champion_data['title']),
         color=embed_color
     )
     embed.set_author(name="Orianna Info Command")
