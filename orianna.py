@@ -221,9 +221,9 @@ async def patch_notes(ctx, game):
 
 @ori.command(name="info", help="get champion info")
 async def info(ctx, *champion_name):
-    print(champion_name)
 
-    champion = ''.join(word.title() for word in champion_name)
+
+    champion = ''.join(word.lower() for word in champion_name)
 
     version = riot_api.get_league_version()
     champion_data = riot_api.champion_data_by_name[champion]

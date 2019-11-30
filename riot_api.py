@@ -114,9 +114,12 @@ def cache_champion_data():
     version = league_version
     with open("dragontail-{}/{}/data/en_US/championFull.json".format(version, version), encoding='utf8') as json_file:
         data = json.load(json_file)['data']
-        champion_data_by_name.update(data)
         temp_dict = {}
-        for key, value in data.items():
+        for value in data.values():
+            temp_dict[value['id'].lower()] = value
+            champion_data_by_name.update(temp_dict)
+        temp_dict = {}
+        for value in data.values():
             temp_dict[value['key']] = value
         champion_data_by_id.update(temp_dict)
 
@@ -162,11 +165,4 @@ def get_patch_url(game):
 
 league_version = get_league_version()
 cache_champion_data()
-
-
-
-
-
-
-
 
