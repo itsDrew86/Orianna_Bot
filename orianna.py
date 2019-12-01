@@ -221,10 +221,7 @@ async def patch_notes(ctx, game):
 
 @ori.command(name="info", help="get champion info")
 async def info(ctx, *champion_name):
-
-
     champion = ''.join(word.lower() for word in champion_name)
-
     try:
         version = riot_api.get_league_version()
         champion_data = riot_api.champion_data_by_name[champion]
@@ -244,7 +241,6 @@ async def info(ctx, *champion_name):
         type_value = champion_data['tags'][0]
         if len(champion_data['tags']) > 1:
             type_value += "/{}".format(champion_data['tags'][1])
-
         embed.add_field(name="Type: ", value=type_value, inline=True)
         embed.add_field(name="Difficulty: ", value="{}/10".format(info['difficulty'], inline=True))
         embed.add_field(name="Blurb", value="```{}```".format(champion_data['blurb']), inline=False)
@@ -282,11 +278,11 @@ async def info(ctx, *champion_name):
         await ctx.send(file=file, embed=embed)
     except KeyError:
         embed = discord.Embed(
-            description="I'm afraid that champion does not exist. Perhaps you spelled it wrong.",
+            title="<:no_entry_sign:650497964195840061> Orianna Info Command",
+            description="Why must you deceive me?\n "
+                        "Please provide a real champion name.",
             color=embed_color
         )
-        embed.set_author(name="<:no_entry_sign:650497964195840061> Orianna Info Command")
-
         await ctx.send(embed=embed)
 
 
