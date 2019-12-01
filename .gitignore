@@ -3,3 +3,8 @@ dragontail-9.23.1
 .idea
 venv
 __pycache__
+test.py
+test2.py
+test_bot.py
+orianna_bot.db
+
