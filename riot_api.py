@@ -117,7 +117,10 @@ def cache_champion_data():
         temp_dict = {}
         for value in data.values():
             temp_dict[value['id'].lower()] = value
-            champion_data_by_name.update(temp_dict)
+
+        champion_data_by_name.update(temp_dict)
+        wukong = champion_data_by_name['monkeyking']
+        champion_data_by_name['wukong'] = wukong
         temp_dict = {}
         for value in data.values():
             temp_dict[value['key']] = value
