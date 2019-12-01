@@ -145,7 +145,15 @@ async def top5(ctx):
 
 
         await ctx.send(file=file, embed=embed)
+    else:
+        embed = discord.Embed(
+            title=":no_entry_sign: Orianna top5 Command",
+            description="You don't have a summoner linked yet.\n"
+                        "To link a summoner, try the `!ori add [summoner name]` command",
+            color=embed_color
+        )
 
+        await ctx.send(embed=embed)
 
 @ori.command(name='remove', help='Remove summoner from discord account')
 async def remove(ctx):
