@@ -9,14 +9,25 @@ import time
 discord_token = os.getenv('DISCORD_TOKEN')
 league_token = os.getenv('LEAGUE_API_TOKEN')
 
-
-embed_color = 0xdfdf00
-
 ori = commands.Bot(command_prefix='!ori ')
+embed_color = 0xdfdf00
+emojis = {}
+
 
 @ori.event
 async def on_ready():
     print(f'{ori.user.name} has connected to Discord!')
+
+    # Parse custom emoji ID's
+    emoji_sets = [651145265104814103,
+                  651147761277730818,
+                  651148360081866760]
+    for id in emoji_sets:
+        guild = ori.get_guild(id)
+        for emoji in guild.emojis:
+            emojis.setdefault(emoji.name.lower(), emoji.id)
+
+
 
 
 @ori.command(name='add', help='Connects your Summoner Account to your Discord Account.')
@@ -133,7 +144,8 @@ async def top5(ctx):
 
 
         for champion in top_5:
-            champ_value += "**{}**\n".format(champion_list[str(champion['championId'])]['name'])
+            champion_name = champion_list[str(champion['championId'])]['name']
+            champ_value += "<:{}:{}>**{}**\n".format(champion_name, emojis[champion_name.lower()], champion_name)
             points_value += "{:,}\n".format(champion['championPoints'])
             last_played_value += "{}\n".format(datetime.date.fromtimestamp(champion['lastPlayTime']/1000).strftime("%b %d, %Y"))
 
@@ -293,5 +305,20 @@ async def info(ctx, *champion_name):
         )
         await ctx.send(embed=embed)
 
+@ori.command(name='trivia')
+async def trivia(ctx):
+
+    async def lore_trivia(ctx):
+        pass
+
+    async def ability_trivia(ctx):
+        pass
+
+    async def title_trivia(ctx):
+        pass
+
+
+
 
 ori.run(discord_token)
+get_emojis()
