@@ -18,7 +18,7 @@ emojis = {}
 async def on_ready():
     print(f'{ori.user.name} has connected to Discord!')
 
-    # Parse custom emoji ID's
+    # Cache custom emoji ID's
     emoji_sets = [651145265104814103,
                   651147761277730818,
                   651148360081866760]
@@ -26,8 +26,6 @@ async def on_ready():
         guild = ori.get_guild(id)
         for emoji in guild.emojis:
             emojis.setdefault(emoji.name.lower(), emoji.id)
-
-
 
 
 @ori.command(name='add', help='Connects your Summoner Account to your Discord Account.')
@@ -130,8 +128,6 @@ async def top5(ctx):
 
         file = discord.File("dragontail-{}/{}/img/profileicon/{}".format(version, version, summoner_image_file),
                             filename=summoner_image_file)
-        # for champ in top_5:
-        #     description += f"**{champion_list[str(champ['championId'])]['name']}** - {champ['championPoints']}\n"
         embed = discord.Embed(
             color=embed_color,
             description="Top 5 champions are:"
@@ -141,11 +137,9 @@ async def top5(ctx):
         points_value = ''
         last_played_value = ''
 
-
-
         for champion in top_5:
             champion_name = champion_list[str(champion['championId'])]['name']
-            champ_value += "<:{}:{}>**{}**\n".format(champion_name, emojis[champion_name.lower()], champion_name)
+            champ_value += "<:{}:{}> **{}**\n".format(champion_name, emojis[champion_name.lower()], champion_name)
             points_value += "{:,}\n".format(champion['championPoints'])
             last_played_value += "{}\n".format(datetime.date.fromtimestamp(champion['lastPlayTime']/1000).strftime("%b %d, %Y"))
 
@@ -153,9 +147,6 @@ async def top5(ctx):
         embed.add_field(name="Champion", value=champ_value)
         embed.add_field(name="Mastery Points", value=points_value)
         embed.add_field(name="Last Played", value=last_played_value, inline=True)
-
-
-
         await ctx.send(file=file, embed=embed)
     else:
         embed = discord.Embed(
@@ -166,6 +157,7 @@ async def top5(ctx):
         )
 
         await ctx.send(embed=embed)
+
 
 @ori.command(name='remove', help='Remove summoner from discord account')
 async def remove(ctx):
@@ -200,7 +192,7 @@ async def remove(ctx):
 async def patch_notes(ctx, game):
     if game == 'lol':
 
-        version = riot_api.get_league_version()
+        version = riot_api.get_patch_url('lol')
         patch = ''
         delimiter_count = 0
         for char in version:
@@ -305,6 +297,7 @@ async def info(ctx, *champion_name):
         )
         await ctx.send(embed=embed)
 
+
 @ori.command(name='trivia')
 async def trivia(ctx):
 
@@ -318,7 +311,4 @@ async def trivia(ctx):
         pass
 
 
-
-
 ori.run(discord_token)
-get_emojis()
