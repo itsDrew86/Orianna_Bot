@@ -16,10 +16,12 @@ embed_color = 0xdfdf00
 emojis = {}
 
 class Player():
-    def __init__(self, summoner_name, champion_id, lane, role, kills, deaths, assists, dmg_to_champions, dmg_to_objectives,
-                 turret_kills, inhibitor_kills, cs_score, vision_score, wards_purchased, wards_placed, wards_killed):
+    def __init__(self, summoner_name, champion_id, team_id, lane, role, kills, deaths, assists, dmg_to_champions,
+                 dmg_to_objectives, turret_kills, inhibitor_kills, cs_score, vision_score, wards_purchased,
+                 wards_placed, wards_killed, creeps_per_min_deltas, cs_diff_per_min_deltas):
         self.summoner_name = summoner_name
         self.champion_id = champion_id
+        self.team_id = team_id
         self.lane = lane
         self.role = role
         self.kills = kills
@@ -35,6 +37,8 @@ class Player():
         self.wards_purchased = wards_purchased
         self.wards_placed = wards_placed
         self.wards_killed = wards_killed
+        self.creeps_per_min_deltas = creeps_per_min_deltas
+        self.cs_diff_per_min_deltas = cs_diff_per_min_deltas
 
 
 @ori.event
@@ -162,8 +166,8 @@ async def top5(ctx):
         last_played_value = ''
 
         for champion in top_5:
-            champion_name = champion_list[str(champion['championId'])]['name']
-            champ_value += "<:{}:{}> **{}**\n".format(champion_name, emojis[champion_name.lower()], champion_name)
+            champion_name = champion_list[str(champion['championId'])]['name'].replace("'","").lower()
+            champ_value += "<:{}:{}> **{}**\n".format(champion_name, emojis[champion_name], champion_name)
             points_value += "{:,}\n".format(champion['championPoints'])
             last_played_value += "{}\n".format(datetime.date.fromtimestamp(champion['lastPlayTime']/1000).strftime("%b %d, %Y"))
 
@@ -333,6 +337,7 @@ async def lastgame(ctx, stat):
         else:
             emoji_name = player.lane.lower()
         emoji_code = emojis[emoji_name]
+
         return emoji_code, emoji_name
 
     champion_list = riot_api.champion_data_by_id
@@ -346,9 +351,11 @@ async def lastgame(ctx, stat):
     matchlist = riot_api.request_matchlist(account_id)
     # get the last game played at matchlist index 0
     last_match_id = matchlist['matches'][0]['gameId']
+
     # api request the data from the last match played
     match_data = riot_api.request_match(last_match_id)
     game_duration = match_data['gameDuration']/60
+    team = None
 
     # initialize lists to use for embed
     player_list = []
@@ -361,23 +368,34 @@ async def lastgame(ctx, stat):
     for participant in match_data['participants']:
         summoner_name = summoner_names[participant['participantId']]
         champion_id = participant['championId']
-        kills = participant['stats']['kills']
-        deaths = participant['stats']['deaths']
-        assists = participant['stats']['assists']
-        dmg_to_champions = participant['stats']['totalDamageDealtToChampions']
-        dmg_to_objectives = participant['stats']['damageDealtToObjectives']
-        turret_kills = participant['stats']['turretKills']
-        inhibitor_kills = participant['stats']['inhibitorKills']
-        cs_score = participant['stats']['totalMinionsKilled']
-        vision_score = participant['stats']['visionScore']
-        wards_purchased = participant['stats']['visionWardsBoughtInGame']
-        wards_placed = participant['stats']['wardsPlaced']
-        wards_killed = participant['stats']['wardsKilled']
-        lane = participant['timeline']['lane']
-        role = participant['timeline']['role']
-        player = Player(summoner_name, champion_id, lane, role, kills, deaths, assists, dmg_to_champions, dmg_to_objectives,
-                        turret_kills, inhibitor_kills, cs_score, vision_score, wards_purchased, wards_placed,
-                        wards_killed)
+        team_id = participant['teamId']
+        stats = participant['stats']
+        timeline = participant['timeline']
+        kills = stats['kills']
+        deaths = stats['deaths']
+        assists = stats['assists']
+        dmg_to_champions = stats['totalDamageDealtToChampions']
+        dmg_to_objectives = stats['damageDealtToObjectives']
+        turret_kills = stats['turretKills']
+        inhibitor_kills = stats['inhibitorKills']
+        cs_score = stats['totalMinionsKilled']
+        vision_score = stats['visionScore']
+        wards_purchased = stats['visionWardsBoughtInGame']
+        wards_placed = stats['wardsPlaced']
+        wards_killed = stats['wardsKilled']
+        lane = timeline['lane']
+        role = timeline['role']
+        creeps_per_min_deltas = timeline['creepsPerMinDeltas']
+        try:
+            cs_diff_per_min_deltas = timeline['csDiffPerMinDeltas']
+        except KeyError:
+            cs_diff_per_min_deltas = None
+
+
+
+        player = Player(summoner_name, champion_id, team_id, lane, role, kills, deaths, assists, dmg_to_champions,
+                        dmg_to_objectives, turret_kills, inhibitor_kills, cs_score, vision_score, wards_purchased,
+                        wards_placed, wards_killed, creeps_per_min_deltas, cs_diff_per_min_deltas)
         player_list.append(player)
 
 
@@ -417,6 +435,7 @@ async def lastgame(ctx, stat):
         dmg_to_objectives = ''
 
         player_list.sort(key=lambda x: x.dmg_to_champions, reverse=True)
+
         for player in player_list:
             champion_name = champion_list[str(player.champion_id)]['name'].replace("'", "").lower()
             role_emoji_code, role_emoji_name = get_role_emoji(player)
@@ -436,7 +455,28 @@ async def lastgame(ctx, stat):
         await ctx.send(embed=embed)
 
     async def creep_score():
-        pass
+
+        summoner = ''
+        creep_score = ''
+        cs_diff = ''
+
+        player_list.sort(key=lambda x: x.cs_score, reverse=True)
+        for player in player_list:
+            opposite_player = list(filter(lambda x: x.role == player.role and x.team_id != player.team_id, player_list))[0]
+            champion_name = champion_list[str(player.champion_id)]['name'].replace("'", "").lower()
+            role_emoji_code, role_emoji_name = get_role_emoji(player)
+            champion_emoji_code = emojis[champion_name]
+            summoner += "<:{}:{}> <:{}:{}> {}\n".format(champion_name, champion_emoji_code, role_emoji_name, role_emoji_code, player.summoner_name)
+            creep_score += f"{player.cs_score}\n"
+            cs_diff += f"{player.cs_score - opposite_player.cs_score}\n"
+
+        embed = discord.Embed(color=embed_color)
+        embed.set_author(name="Creep Score")
+        embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/675044023823761419.png?v=1")
+        embed.add_field(name='Summoner', value=summoner)
+        embed.add_field(name='CS', value=creep_score)
+        embed.add_field(name='CS Diff', value=cs_diff)
+        await ctx.send(embed=embed)
 
     dispatcher = {'vision': vision,
                   'damage': damage,
