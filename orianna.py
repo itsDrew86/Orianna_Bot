@@ -126,7 +126,7 @@ async def add(ctx, summoner_name):
         print("Ori Add Command: {} code not in dispatcher".format(response_status))
 
 
-@ori.command(name='top5', help='Show your top 5 mastery champions')
+@ori.command(name='top10', help='Show your top 10 mastery champions')
 async def top5(ctx):
 
     # Get the command author
@@ -140,7 +140,7 @@ async def top5(ctx):
     if db_summoner_id != False:
 
         # API request for summoner's top 5 champion sorted by mastery score and get cached champion list
-        top_5 = riot_api.call_top_5_mastery(db_summoner_id)
+        top_10 = riot_api.call_top_10_mastery(db_summoner_id)
         champion_list = riot_api.champion_data_by_id
 
         # API request for fresh summoner data (to get most up-to-date profile icon)
@@ -158,14 +158,14 @@ async def top5(ctx):
                             filename=summoner_image_file)
         embed = discord.Embed(
             color=embed_color,
-            description="Top 5 champions are:"
+            description="Top 10 champions are:"
         )
 
         champ_value = ''
         points_value = ''
         last_played_value = ''
 
-        for champion in top_5:
+        for champion in top_10:
             champion_name = champion_list[str(champion['championId'])]['name'].replace("'","").lower()
             champ_value += "<:{}:{}> **{}**\n".format(champion_name, emojis[champion_name], champion_name)
             points_value += "{:,}\n".format(champion['championPoints'])

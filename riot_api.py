@@ -94,7 +94,7 @@ def call_summonerById(summoner_id):
     return data
 
 
-def call_top_5_mastery(summoner_id):
+def call_top_10_mastery(summoner_id):
     # response example:
     # [
     #     {
@@ -123,8 +123,7 @@ def call_top_5_mastery(summoner_id):
     response = requests.get(f"https://na1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-summoner/{summoner_id}",
                             headers=headers)
     data = response.json()
-    data = sorted(data, key=lambda x: x['championPoints'], reverse=True)[:5]
-    print(data)
+    data = sorted(data, key=lambda x: x['championPoints'], reverse=True)[:10]
     return data
 
 
