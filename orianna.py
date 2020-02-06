@@ -335,6 +335,8 @@ async def lastgame(ctx, stat):
         emoji_code = emojis[emoji_name]
         return emoji_code, emoji_name
 
+    champion_list = riot_api.champion_data_by_id
+
     #get discord user
     author = ctx.message.author
     # get riot account ID from database using the author's discord ID
@@ -391,10 +393,12 @@ async def lastgame(ctx, stat):
         percentile_50 = np.percentile(vision_score_list, 50)
         percentile_75 = np.percentile(vision_score_list, 75)
         for player in player_list:
+            champion_name = champion_list[str(player.champion_id)]['name'].replace("'","").lower()
             role_emoji_code, role_emoji_name = get_role_emoji(player)
-            summoner += "<:{}:{}> {}\n".format(role_emoji_name, role_emoji_code, player.summoner_name)
+            champion_emoji_code = emojis[champion_name]
+            summoner += "<:{}:{}> <:{}:{}> {}\n".format(champion_name, champion_emoji_code, role_emoji_name, role_emoji_code, player.summoner_name)
             vision += "{} / {} / {}\n".format(player.wards_placed, player.wards_killed, player.wards_purchased)
-            vision_score += "{}  ....{}/min\n".format(player.vision_score, round(player.vision_score/game_duration, 1))
+            vision_score += f"{player.vision_score} ... ( {round(player.vision_score/game_duration, 1)}/min )\n"
 
         embed = discord.Embed(
             color=embed_color
@@ -414,9 +418,12 @@ async def lastgame(ctx, stat):
 
         player_list.sort(key=lambda x: x.dmg_to_champions, reverse=True)
         for player in player_list:
-            summoner += "{}\n".format(player.summoner_name)
-            dmg_to_champions += "{}\n".format(player.dmg_to_champions)
-            dmg_to_objectives += "{}\n".format(player.dmg_to_objectives)
+            champion_name = champion_list[str(player.champion_id)]['name'].replace("'", "").lower()
+            role_emoji_code, role_emoji_name = get_role_emoji(player)
+            champion_emoji_code = emojis[champion_name]
+            summoner += "<:{}:{}> <:{}:{}> {}\n".format(champion_name, champion_emoji_code, role_emoji_name, role_emoji_code, player.summoner_name)
+            dmg_to_champions += "{:,}\n".format(player.dmg_to_champions)
+            dmg_to_objectives += "{:,}\n".format(player.dmg_to_objectives)
 
         embed = discord.Embed(
             color=embed_color
@@ -428,9 +435,12 @@ async def lastgame(ctx, stat):
         embed.add_field(name='Obj Dmg', value=dmg_to_objectives)
         await ctx.send(embed=embed)
 
+    async def creep_score():
+        pass
 
     dispatcher = {'vision': vision,
                   'damage': damage,
+                  'cs': creep_score,
                   }
     await dispatcher[stat]()
 
