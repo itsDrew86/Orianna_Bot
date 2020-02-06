@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import json
 from discord import File as discord_file
 from bs4 import BeautifulSoup
+import time
 
 
 load_dotenv()
@@ -32,6 +33,28 @@ errors = {400: 'Bad request',
           502: 'Bad gateway',
           503: 'Service unavailable',
           504: 'Gateway timeout',}
+
+
+def request_matchlist(account_id):
+    response = requests.get('https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{}'.format(account_id), headers=headers)
+    while response.status_code != 200:
+        print(f'API Response: {response.status_code} - {errors[response.status_code]}. Sleeping 1')
+        time.sleep(1)
+        print('Retrying Request')
+        response = requests.get('https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{}'.format(account_id), headers=headers)
+    print('Matchlist Request Success')
+    response = response.json()
+    return response
+
+def request_match(match_id):
+    response = requests.get(f'https://na1.api.riotgames.com/lol/match/v4/matches/{match_id}', headers=headers)
+    while response.status_code != 200:
+        print(f'API Response: {response.status_code} - {errors[response.status_code]}. Sleeping 1')
+        time.sleep(1)
+        print('Retrying request')
+        response = requests.get(f'https://na1.api.riotgames.com/lol/match/v4/matches/{match_id}', headers=headers)
+    response = response.json()
+    return response
 
 
 def get_request_error(err):
@@ -101,6 +124,7 @@ def call_top_5_mastery(summoner_id):
                             headers=headers)
     data = response.json()
     data = sorted(data, key=lambda x: x['championPoints'], reverse=True)[:5]
+    print(data)
     return data
 
 
@@ -116,7 +140,7 @@ def cache_champion_data():
         data = json.load(json_file)['data']
         temp_dict = {}
         for value in data.values():
-            temp_dict[value['id'].lower()] = value
+            temp_dict[value['id'].lower().strip("'")] = value
 
         champion_data_by_name.update(temp_dict)
         wukong = champion_data_by_name['monkeyking']
@@ -125,6 +149,7 @@ def cache_champion_data():
         for value in data.values():
             temp_dict[value['key']] = value
         champion_data_by_id.update(temp_dict)
+
 
 
 def get_champion_thumbnail(id):
