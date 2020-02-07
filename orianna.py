@@ -442,7 +442,9 @@ async def lastgame(ctx, stat):
         bar_width = 0.80
         x = list(player.dmg_to_champions for player in player_list)
         y = list(player.dmg_to_objectives for player in player_list)
-
+        # 956D28
+        fig, ax = plt.subplots(nrows=1, ncols=1)
+        ax.set_facecolor("#303136")
         plt.bar(pos, x, color="#956D28", ec="black")
         plt.bar(pos, y, color="#0F5564", ec="black", bottom=x)
         plt.xticks(pos, players)
@@ -505,6 +507,21 @@ async def lastgame(ctx, stat):
                   }
     await dispatcher[stat]()
 
+@ori.command(name='map')
+async def map(ctx):
+    im = plt.imread("map12.png")
+    plt.imshow(im)
+    plt.xlim(0, 1000)
+    plt.ylim(0, 1000)
+    plt.scatter(500, 500)
+    plt.scatter(800, 300)
+    plt.scatter(100, 600)
+
+    plt.savefig("map.png")
+    file = discord.File("map.png", filename="map.png")
+    embed = discord.Embed(color=embed_color)
+    embed.set_image(url="attachment://map.png")
+    await ctx.send(file=file, embed=embed)
 
 
 ori.run(discord_token)
