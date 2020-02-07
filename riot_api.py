@@ -146,8 +146,10 @@ def cache_champion_data():
         champion_data_by_name['wukong'] = wukong
         temp_dict = {}
         for value in data.values():
+            value['name'] = value['name'].replace("'","").replace(".","").replace(" ", "").lower()
             temp_dict[value['key']] = value
         champion_data_by_id.update(temp_dict)
+        champion_data_by_id['20']['name'] = 'nunu'
 
 
 
