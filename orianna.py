@@ -332,6 +332,8 @@ async def lastgame(ctx, stat):
     def get_role_emoji(player):
         duo_codes = {'DUO_CARRY': 'bot',
                      'DUO_SUPPORT': 'support'}
+        print(player.lane)
+        print(player.role)
         if player.lane == 'BOTTOM':
             emoji_name = duo_codes[player.role]
         else:
@@ -430,29 +432,47 @@ async def lastgame(ctx, stat):
         await ctx.send(embed=embed)
 
     async def damage():
+
+
+        player_list.sort(key=lambda x: x.dmg_to_champions + x.dmg_to_objectives, reverse=True)
+
+        players = list(player.summoner_name[0:4] for player in player_list)
+        damage = ['Champion Damage', 'Objective Damage']
+        pos=np.arange(len(players))
+        bar_width = 0.80
+        x = list(player.dmg_to_champions for player in player_list)
+        y = list(player.dmg_to_objectives for player in player_list)
+
+        plt.bar(pos, x, color="#956D28", ec="black")
+        plt.bar(pos, y, color="#0F5564", ec="black", bottom=x)
+        plt.xticks(pos, players)
+        plt.xlabel('Summoner', fontsize=14)
+        plt.ylabel('Damage', fontsize=14)
+        plt.title('Damage Contribution by Summoner', fontsize=16)
+        plt.legend(damage, loc=1)
+        plt.savefig("champion_damage.png")
+        file = discord.File("champion_damage.png", filename="champion_damage.png")
+
         summoner = ''
         dmg_to_champions = ''
         dmg_to_objectives = ''
-
-        player_list.sort(key=lambda x: x.dmg_to_champions, reverse=True)
-
         for player in player_list:
-            champion_name = champion_list[str(player.champion_id)]['name'].replace("'", "").lower()
+            champion_name = champion_list[str(player.champion_id)]['name'].replace("'", "").replace(" ", "").lower()
             role_emoji_code, role_emoji_name = get_role_emoji(player)
             champion_emoji_code = emojis[champion_name]
-            summoner += "<:{}:{}> <:{}:{}> {}\n".format(champion_name, champion_emoji_code, role_emoji_name, role_emoji_code, player.summoner_name)
+            summoner += "<:{}:{}> <:{}:{}> {}\n".format(champion_name, champion_emoji_code, role_emoji_name, role_emoji_code, player.summoner_name[0:15])
             dmg_to_champions += "{:,}\n".format(player.dmg_to_champions)
             dmg_to_objectives += "{:,}\n".format(player.dmg_to_objectives)
-
         embed = discord.Embed(
             color=embed_color
         )
         embed.set_author(name='Damage Report')
         embed.set_thumbnail(url="https://cdn.discordapp.com/emojis/643972725114667037.png?v=1")
+        embed.set_image(url="attachment://champion_damage.png")
         embed.add_field(name='Summoner', value=summoner)
         embed.add_field(name='Champ Dmg', value=dmg_to_champions)
         embed.add_field(name='Obj Dmg', value=dmg_to_objectives)
-        await ctx.send(embed=embed)
+        await ctx.send(file=file, embed=embed)
 
     async def creep_score():
 
@@ -477,6 +497,7 @@ async def lastgame(ctx, stat):
         embed.add_field(name='CS', value=creep_score)
         embed.add_field(name='CS Diff', value=cs_diff)
         await ctx.send(embed=embed)
+
 
     dispatcher = {'vision': vision,
                   'damage': damage,
