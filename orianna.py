@@ -164,10 +164,12 @@ async def top5(ctx):
         champ_value = ''
         points_value = ''
         last_played_value = ''
+        for emoji in emojis:
+            print(emoji)
 
         for champion in top_10:
-            champion_name = champion_list[str(champion['championId'])]['name'].replace("'","").lower()
-            champ_value += "<:{}:{}> **{}**\n".format(champion_name, emojis[champion_name], champion_name)
+            champion_name = champion_list[str(champion['championId'])]['name']
+            champ_value += "<:{}:{}> **{}**\n".format(champion_name, emojis[champion_name], champion_name.capitalize())
             points_value += "{:,}\n".format(champion['championPoints'])
             last_played_value += "{}\n".format(datetime.date.fromtimestamp(champion['lastPlayTime']/1000).strftime("%b %d, %Y"))
 
@@ -525,3 +527,4 @@ async def map(ctx):
 
 
 ori.run(discord_token)
+
