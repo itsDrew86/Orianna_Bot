@@ -291,7 +291,7 @@ async def patch_notes(ctx, game):
 async def info(ctx, *champion_name):
     champion = ''.join(word.lower() for word in champion_name)
     try:
-        version = riot_api.get_league_version()
+        version = riot_api.league_version
         champion_data = riot_api.champion_data_by_name[champion]
         stats = champion_data['stats']
         champion_info = champion_data['info']
