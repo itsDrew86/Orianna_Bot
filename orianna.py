@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 discord_token = os.getenv('DISCORD_TOKEN')
 league_token = os.getenv('LEAGUE_API_TOKEN')
 
-ori = commands.Bot(command_prefix='!ori ')
+ori = commands.Bot(command_prefix='~ori ')
 embed_color = 0xdfdf00
 emojis = {}
 
@@ -328,7 +328,7 @@ async def info(ctx, *champion_name):
         await ctx.send(embed=embed)
 
 
-@ori.command(name='lastgame', help='Get stats from your last played game')
+@ori.command(name='lg', help='Get stats from your last played game')
 async def lastgame(ctx, stat):
 
     def get_role_emoji(player):
@@ -410,12 +410,12 @@ async def lastgame(ctx, stat):
         vision = ''
         vision_score = ''
         player_list.sort(key=lambda x: x.vision_score, reverse=True)
-        vision_score_list = list(p.vision_score for p in player_list)
-        percentile_25 = np.percentile(vision_score_list, 25)
-        percentile_50 = np.percentile(vision_score_list, 50)
-        percentile_75 = np.percentile(vision_score_list, 75)
+#        vision_score_list = list(p.vision_score for p in player_list)
+#        percentile_25 = np.percentile(vision_score_list, 25)
+#        percentile_50 = np.percentile(vision_score_list, 50)
+#        percentile_75 = np.percentile(vision_score_list, 75)
         for player in player_list:
-            champion_name = champion_list[str(player.champion_id)]['name'].replace("'","").lower()
+            champion_name = champion_list[str(player.champion_id)]['name'].replace("'","")
             role_emoji_code, role_emoji_name = get_role_emoji(player)
             champion_emoji_code = emojis[champion_name]
             summoner += "<:{}:{}> <:{}:{}> {}\n".format(champion_name, champion_emoji_code, role_emoji_name, role_emoji_code, player.summoner_name)
@@ -527,4 +527,3 @@ async def map(ctx):
 
 
 ori.run(discord_token)
-

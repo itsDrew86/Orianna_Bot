@@ -72,8 +72,7 @@ def call_summonerByName(summoner_name):
         #     "id": "TJEAB0ncKyYGWPbXEkFbNoEgkoUMYxJXzgVFQFvmXn8GVKQ",
         #     "revisionDate": 1574320866000
         # }
-        response = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}",
-                                headers=headers)
+        response = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{summoner_name}", headers=headers)
         data = response.json()
         return response.status_code, data
 
