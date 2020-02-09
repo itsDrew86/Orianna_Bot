@@ -127,7 +127,7 @@ async def add(ctx, summoner_name):
 
 
 @ori.command(name='top10', help='Show your top 10 mastery champions')
-async def top5(ctx):
+async def top10(ctx):
 
     # Get the command author
     author = ctx.message.author
@@ -180,7 +180,7 @@ async def top5(ctx):
         await ctx.send(file=file, embed=embed)
     else:
         embed = discord.Embed(
-            title=":no_entry_sign: Orianna top5 Command",
+            title=":no_entry_sign: Orianna top10 Command",
             description="You don't have a summoner linked yet.\n"
                         "To link a summoner, try the `!ori add [summoner name]` command",
             color=embed_color
@@ -340,7 +340,8 @@ async def lastgame(ctx, stat):
             emoji_name = duo_codes[player.role]
         else:
             emoji_name = player.lane.lower()
-        emoji_code = emojis[emoji_name]
+
+        emoji_code = emojis.get(emoji_name, 'Emoji not available')
 
         return emoji_code, emoji_name
 
@@ -359,7 +360,7 @@ async def lastgame(ctx, stat):
     # api request the data from the last match played
     match_data = riot_api.request_match(last_match_id)
     game_duration = match_data['gameDuration']/60
-    team = None
+    #team = None
 
     # initialize lists to use for embed
     player_list = []
@@ -441,7 +442,7 @@ async def lastgame(ctx, stat):
         players = list(player.summoner_name[0:4] for player in player_list)
         damage = ['Champion Damage', 'Objective Damage']
         pos=np.arange(len(players))
-        bar_width = 0.80
+#        bar_width = 0.80
         x = list(player.dmg_to_champions for player in player_list)
         y = list(player.dmg_to_objectives for player in player_list)
         # 956D28
@@ -462,6 +463,12 @@ async def lastgame(ctx, stat):
         dmg_to_objectives = ''
         for player in player_list:
             champion_name = champion_list[str(player.champion_id)]['name'].replace("'", "").replace(" ", "").lower()
+            print(champion_name)
+            if (champion_name == 'aphelios'):
+                champion_name = champion_name
+                print(champion_name)
+            else:
+                continue
             role_emoji_code, role_emoji_name = get_role_emoji(player)
             champion_emoji_code = emojis[champion_name]
             summoner += "<:{}:{}> <:{}:{}> {}\n".format(champion_name, champion_emoji_code, role_emoji_name, role_emoji_code, player.summoner_name[0:15])
