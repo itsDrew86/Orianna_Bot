@@ -134,8 +134,8 @@ def get_league_version():
 
 
 def cache_champion_data():
-    version = league_version
-    with open("dragontail-{}/{}/data/en_US/championFull.json".format(version, version), encoding='utf8') as json_file:
+    with open("dragontail-{}/{}/data/en_US/championFull.json".format(league_version, league_version), encoding='utf8')\
+            as json_file:
         data = json.load(json_file)['data']
         temp_dict = {}
         for value in data.values():
@@ -150,15 +150,6 @@ def cache_champion_data():
             temp_dict[value['key']] = value
         champion_data_by_id.update(temp_dict)
         champion_data_by_id['20']['name'] = 'nunu'
-
-
-
-def get_champion_thumbnail(id):
-    version = league_version
-    image_name = champion_data_by_id[id]['image']['full']
-    file = discord_file("dragontail-{}/{}/img/champion/{}".format(version, version, image_name),
-                        filename=image_name)
-    return file
 
 
 def get_patch_url(game):
@@ -192,6 +183,7 @@ def get_patch_url(game):
     elif game == 'lol':
         return lol_patch
 
-league_version = get_league_version()
+
+league_version = "10.3.1"
 cache_champion_data()
 
