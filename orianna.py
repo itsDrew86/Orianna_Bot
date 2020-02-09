@@ -355,14 +355,12 @@ async def info(ctx, *champion_name):
         await ctx.send(embed=embed)
 
 
-@ori.command(name='lastgame', help='Get stats from your last played game')
+@ori.command(name='lg', help='Get stats from your last played game')
 async def lastgame(ctx, stat):
 
     def get_role_emoji(summoner):
         duo_codes = {'DUO_CARRY': 'bot',
                      'DUO_SUPPORT': 'support'}
-        print(summoner.lane)
-        print(participant.role)
         if summoner.lane == 'BOTTOM':
             emoji_name = duo_codes[summoner.role]
         else:
