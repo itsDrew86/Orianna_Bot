@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 discord_token = os.getenv('DISCORD_TOKEN')
 league_token = os.getenv('LEAGUE_API_TOKEN')
 
-ori = commands.Bot(command_prefix='~ori ')
+ori = commands.Bot(command_prefix='!ori ')
 embed_color = 0xdfdf00
 emojis = {}
 
