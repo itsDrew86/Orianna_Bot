@@ -180,7 +180,7 @@ async def remove(ctx):
 
 
 @ori.command(name='top10', help='Show your top 10 mastery champions')
-async def top5(ctx):
+async def top10(ctx):
 
     # Get the command author
     author = ctx.message.author
@@ -192,7 +192,7 @@ async def top5(ctx):
     # If user exists in database, then do the following
     if db_summoner_id:
 
-        # API request for summoner's top 5 champion sorted by mastery score and get cached champion list
+        # API request for summoner's top 10 champion sorted by mastery score and get cached champion list
         top_10 = riot_api.call_top_10_mastery(db_summoner_id)
         champion_list = riot_api.champion_data_by_id
 
@@ -234,7 +234,7 @@ async def top5(ctx):
         await ctx.send(file=file, embed=embed)
     else:
         embed = discord.Embed(
-            title=":no_entry_sign: Orianna top5 Command",
+            title=":no_entry_sign: Orianna top10 Command",
             description="You don't have a summoner linked yet.\n"
                         "To link a summoner, try the `!ori add [summoner name]` command",
             color=embed_color
@@ -365,7 +365,7 @@ async def lastgame(ctx, stat):
             emoji_name = duo_codes[summoner.role]
         else:
             emoji_name = summoner.lane.lower()
-        emoji_code = emojis[emoji_name]
+        emoji_code = emojis.get(emoji_name, 'Emoji is not available')
 
         return emoji_code, emoji_name
 
@@ -459,7 +459,6 @@ async def lastgame(ctx, stat):
         players = list(player.summoner_name[0:4] for player in player_list)
         damage_legend = ['Champion Damage', 'Objective Damage']
         pos = np.arange(len(players))
-        bar_width = 0.80
         x = list(player.dmg_to_champions for player in player_list)
         y = list(player.dmg_to_objectives for player in player_list)
         # 956D28
