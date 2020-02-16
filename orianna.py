@@ -6,6 +6,7 @@ import db_handler
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 
 
 discord_token = os.getenv('DISCORD_TOKEN')
@@ -14,6 +15,15 @@ league_token = os.getenv('LEAGUE_API_TOKEN')
 ori = commands.Bot(command_prefix='!ori ')
 embed_color = 0xdfdf00
 emojis = {}
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+
+f_handler = logging.FileHandler('log.log')
+f_handler.setLevel(logging.DEBUG)
+f_format = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s = %(message)s')
+f_handler.setFormatter(f_format)
+logger.addHandler(f_handler)
 
 
 class Player:
@@ -45,12 +55,14 @@ class Player:
 @ori.event
 async def on_ready():
     print(f'{ori.user.name} has connected to Discord!')
+    logger.info(f'{ori.user.name} has connected to Discord!')
 
     # Cache custom emoji ID's
     emoji_sets = [651145265104814103,
                   651147761277730818,
                   651148360081866760,
                   673328777492824124]
+
     for guild_id in emoji_sets:
         guild = ori.get_guild(guild_id)
         for emoji in guild.emojis:
@@ -123,9 +135,10 @@ async def add(ctx, summoner_name):
             )
             user_created.set_thumbnail(url="attachment://{}".format(summoner_image))
             await ctx.send(file=file, embed=user_created)
-            print("{} assigned to {}, ID: {}".format(summoner_name, author, author.id))
+            logger.info(f'User Created: {author.name}({author.id}) - {summoner_name}')
         else:
-            await ctx.send("There was a problem adding {} to your adding".format(summoner_name))
+            await ctx.send("There was a problem adding {} to your account".format(summoner_name))
+            logger.info(f'Could not add summoner {summoner_name} to {author.name}({author.id})')
 
     async def does_not_exist():
         dne_embed = discord.Embed(
@@ -134,6 +147,8 @@ async def add(ctx, summoner_name):
             color=embed_color
         )
         await ctx.send(embed=dne_embed)
+        logger.info(f'{author.name}({author.id}) tried to a summoner that does not exist in this region - '
+                    f'{summoner_name}')
         return
 
     # Command Dispatcher: Calls different function based on response code returned from Riot API request. If the
@@ -169,6 +184,7 @@ async def remove(ctx):
             color=embed_color
         )
         await ctx.send(embed=embed)
+
     else:
         embed = discord.Embed(
             title='<:no_entry_sign:647646871459987458>  Orianna Remove Command',
@@ -185,7 +201,7 @@ async def top5(ctx):
     # Get the command author
     author = ctx.message.author
 
-    # Try to get summoner id and name from the user database
+    # Try to get summoner id and name from the SQL user database
     db_summoner_id = db_handler.get_summoner_id(author.id)
     db_summoner_name = db_handler.get_summoner_name(author.id)
 
@@ -216,8 +232,6 @@ async def top5(ctx):
         champ_value = ''
         points_value = ''
         last_played_value = ''
-        for emoji in emojis:
-            print(emoji)
 
         for champion in top_10:
             champion_name = champion_list[str(champion['championId'])]['name']
@@ -371,11 +385,11 @@ async def lastgame(ctx, stat):
     def get_champion_emoji(champion_name):
         try:
             emoji_code = emojis[champion_name]
-            print(emoji_code, type(emoji_code))
             emoji_name = champion_name
         except KeyError:
             emoji_code = emojis["league_mia"]
             emoji_name = "league_mia"
+            logger.warning(f'Emoji missing: {emoji_name} ({emoji_code})')
         return emoji_name, emoji_code
 
     champion_list = riot_api.champion_data_by_id
