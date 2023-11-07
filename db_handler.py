@@ -24,7 +24,7 @@ def remove_user(discord_id):
             c.execute("SELECT summoner_name FROM users WHERE discord_id = ?", (discord_id,))
             summoner_name = c.fetchone()[0]
             c.execute("DELETE FROM users WHERE discord_id = ?", (discord_id,))
-            print("{} removed from user database".format(discord_id))
+            print(f"{discord_id} removed from user database")
             return True, summoner_name
     except TypeError:
         return False, None
@@ -39,8 +39,7 @@ def get_summoner_name(discord_id):
     try:
         with conn:
             c.execute("SELECT summoner_name FROM users WHERE discord_id = ?", (discord_id,))
-        summoner_name = c.fetchone()[0]
-        return summoner_name
+        return c.fetchone()[0]
     except TypeError:
         return False
 
@@ -53,8 +52,7 @@ def get_summoner_id(discord_id):
     try:
         with conn:
             c.execute("SELECT summoner_id FROM users WHERE discord_id = ?", (discord_id,))
-        summoner_id = c.fetchone()[0]
-        return summoner_id
+        return c.fetchone()[0]
     except TypeError:
         return False
 
@@ -67,8 +65,7 @@ def get_account_id(discord_id):
     try:
         with conn:
             c.execute("SELECT account_id FROM users WHERE discord_id = ?", (discord_id,))
-        account_id = c.fetchone()[0]
-        return account_id
+        return c.fetchone()[0]
     except TypeError:
         return False
 
@@ -81,7 +78,6 @@ def get_puu_id(discord_id):
     try:
         with conn:
             c.execute("SELECT puu_id FROM users WHERE discord_id = ?", (discord_id,))
-        puu_id = c.fetchone()[0]
-        return puu_id
+        return c.fetchone()[0]
     except TypeError:
         return False
