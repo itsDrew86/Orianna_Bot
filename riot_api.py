@@ -36,12 +36,18 @@ errors = {400: 'Bad request',
 
 
 def request_matchlist(account_id):
-    response = requests.get('https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{}'.format(account_id), headers=headers)
+    response = requests.get(
+        f'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{account_id}',
+        headers=headers,
+    )
     while response.status_code != 200:
         print(f'API Response: {response.status_code} - {errors[response.status_code]}. Sleeping 1')
         time.sleep(1)
         print('Retrying Request')
-        response = requests.get('https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{}'.format(account_id), headers=headers)
+        response = requests.get(
+            f'https://na1.api.riotgames.com/lol/match/v4/matchlists/by-account/{account_id}',
+            headers=headers,
+        )
     print('Matchlist Request Success')
     response = response.json()
     return response
@@ -90,8 +96,7 @@ def call_summonerById(summoner_id):
 #     "revisionDate": 1574398327000
     # }
     response = requests.get(f"https://na1.api.riotgames.com/lol/summoner/v4/summoners/{summoner_id}", headers=headers)
-    data = response.json()
-    return data
+    return response.json()
 
 
 def call_top_10_mastery(summoner_id):
@@ -134,13 +139,9 @@ def get_league_version():
 
 
 def cache_champion_data():
-    with open("dragontail-{}/{}/data/en_US/championFull.json".format(league_version, league_version), encoding='utf8')\
-            as json_file:
+    with open(f"dragontail-{league_version}/{league_version}/data/en_US/championFull.json", encoding='utf8') as json_file:
         data = json.load(json_file)['data']
-        temp_dict = {}
-        for value in data.values():
-            temp_dict[value['id'].lower().strip("'")] = value
-
+        temp_dict = {value['id'].lower().strip("'"): value for value in data.values()}
         champion_data_by_name.update(temp_dict)
         wukong = champion_data_by_name['monkeyking']
         champion_data_by_name['wukong'] = wukong
@@ -165,23 +166,17 @@ def get_patch_url(game):
     for patch in patches:
         if "Tactics" in patch.text and tft_patch == '':
             tft_patch = patch.text
-            temp_str = ''
-            for char in tft_patch:
-                if char.isdigit():
-                    temp_str += char
+            temp_str = ''.join(char for char in tft_patch if char.isdigit())
             tft_patch = temp_str
         if "Tactics" not in patch.text and lol_patch == '':
             lol_patch = patch.text
-            temp_str = ''
-            for char in lol_patch:
-                if char.isdigit():
-                    temp_str += char
+            temp_str = ''.join(char for char in lol_patch if char.isdigit())
             lol_patch = temp_str
 
-    if game == 'tft':
-        return tft_patch
-    elif game == 'lol':
+    if game == 'lol':
         return lol_patch
+    elif game == 'tft':
+        return tft_patch
 
 
 league_version = "10.3.1"

@@ -180,11 +180,9 @@ async def remove(ctx):
     if removed:
         embed = discord.Embed(
             title='<:ballot_box_with_check:647645266257772554>  Orianna Remove Command',
-            description="**{}** is no longer linked to your account".format(summoner_name),
-            color=embed_color
+            description=f"**{summoner_name}** is no longer linked to your account",
+            color=embed_color,
         )
-        await ctx.send(embed=embed)
-
     else:
         embed = discord.Embed(
             title='<:no_entry_sign:647646871459987458>  Orianna Remove Command',
@@ -192,7 +190,8 @@ async def remove(ctx):
                         "To add a summoner, try the `!ori add [summoner name]` command",
             color=embed_color
         )
-        await ctx.send(embed=embed)
+
+    await ctx.send(embed=embed)
 
 
 @ori.command(name='top10', help='Show your top 10 mastery champions')
@@ -217,13 +216,14 @@ async def top5(ctx):
 
         # Get profile icon id from summoner data dict
         profile_icon_id = summoner_data['profileIconId']
-        summoner_image_file = "{}.png".format(profile_icon_id)
-
         # Get league version
         version = riot_api.league_version
 
-        file = discord.File("dragontail-{}/{}/img/profileicon/{}".format(version, version, summoner_image_file),
-                            filename=summoner_image_file)
+        summoner_image_file = f"{profile_icon_id}.png"
+        file = discord.File(
+            f"dragontail-{version}/{version}/img/profileicon/{summoner_image_file}",
+            filename=summoner_image_file,
+        )
         embed = discord.Embed(
             color=embed_color,
             description="Top 10 champions are:"
@@ -235,13 +235,14 @@ async def top5(ctx):
 
         for champion in top_10:
             champion_name = champion_list[str(champion['championId'])]['name']
-            champ_value += "<:{}:{}> **{}**\n".format(champion_name, emojis[champion_name], champion_name.capitalize())
+            champ_value += f"<:{champion_name}:{emojis[champion_name]}> **{champion_name.capitalize()}**\n"
             points_value += "{:,}\n".format(champion['championPoints'])
-            last_played_value += "{}\n".format(datetime.date.fromtimestamp(champion['lastPlayTime']/1000).strftime(
-                "%b %d, %Y"))
+            last_played_value += f"""{datetime.date.fromtimestamp(champion['lastPlayTime'] / 1000).strftime("%b %d, %Y")}\n"""
 
-        embed.set_author(name="Mastery: {}".format(db_summoner_name.title()), icon_url="attachment://{}".format(
-            summoner_image_file))
+        embed.set_author(
+            name=f"Mastery: {db_summoner_name.title()}",
+            icon_url=f"attachment://{summoner_image_file}",
+        )
         embed.add_field(name="Champion", value=champ_value)
         embed.add_field(name="Mastery Points", value=points_value)
         embed.add_field(name="Last Played", value=last_played_value, inline=True)
@@ -271,32 +272,31 @@ async def patch_notes(ctx, game):
                 delimiter_count += 1
             if delimiter_count == 2:
                 break
-        title_patch = "{}.{}{}".format(patch[0], patch[1], patch[2])
+        title_patch = f"{patch[0]}.{patch[1]}{patch[2]}"
         embed = discord.Embed(
-            title="League of Legends Patch {} Notes".format(title_patch),
+            title=f"League of Legends Patch {title_patch} Notes",
             description="The latest patch notes",
             color=embed_color,
-            url="https://na.leagueoflegends.com/en/news/game-updates/patch/patch-{}-notes".format(patch)
-
+            url=f"https://na.leagueoflegends.com/en/news/game-updates/patch/patch-{patch}-notes",
         )
-        embed.set_image(url="https://na.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/patch_."
-                            "{}_notes_header.jpg".format(title_patch))
+        embed.set_image(
+            url=f"https://na.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/patch_.{title_patch}_notes_header.jpg"
+        )
 
         await ctx.send(embed=embed)
 
     elif game == 'tft':
         version = riot_api.get_patch_url('tft')
-        title_patch = "{}.{}{}".format(version[0], version[1], version[2])
+        title_patch = f"{version[0]}.{version[1]}{version[2]}"
         embed = discord.Embed(
-            title="Teamfight Tactics Patch {} Notes".format(title_patch),
+            title=f"Teamfight Tactics Patch {title_patch} Notes",
             description="The latest patch notes",
             color=embed_color,
-            url="https://na.leagueoflegends.com/en/news/game-updates/patch/teamfight-tactics-patch-{}-notes".format(
-                version)
+            url=f"https://na.leagueoflegends.com/en/news/game-updates/patch/teamfight-tactics-patch-{version}-notes",
         )
         embed.set_image(
-            url="https://na.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/tft_patch"
-                "_{}_notes_header.jpg".format(title_patch))
+            url=f"https://na.leagueoflegends.com/sites/default/files/styles/wide_small/public/upload/tft_patch_{title_patch}_notes_header.jpg"
+        )
 
         await ctx.send(embed=embed)
 
@@ -311,21 +311,25 @@ async def info(ctx, *champion_name):
         champion_info = champion_data['info']
         spells = champion_data['spells']
         champion_thumbnail = champion_data['image']['full']
-        file = discord.File("dragontail-{}/{}/img/champion/{}".format(version, version, champion_thumbnail),
-                            filename=f"{champion_thumbnail}")
+        file = discord.File(
+            f"dragontail-{version}/{version}/img/champion/{champion_thumbnail}",
+            filename=f"{champion_thumbnail}",
+        )
         embed = discord.Embed(
-            description="{}, {}:".format(champion, champion_data['title']),
-            color=embed_color
+            description=f"{champion}, {champion_data['title']}:",
+            color=embed_color,
         )
         embed.set_author(name="Orianna Info Command")
-        embed.set_thumbnail(url="attachment://{}".format(champion_thumbnail))
+        embed.set_thumbnail(url=f"attachment://{champion_thumbnail}")
 
         type_value = champion_data['tags'][0]
         if len(champion_data['tags']) > 1:
-            type_value += "/{}".format(champion_data['tags'][1])
+            type_value += f"/{champion_data['tags'][1]}"
         embed.add_field(name="Type: ", value=type_value, inline=True)
         embed.add_field(name="Difficulty: ", value="{}/10".format(champion_info['difficulty'], inline=True))
-        embed.add_field(name="Blurb", value="```{}```".format(champion_data['blurb']), inline=False)
+        embed.add_field(
+            name="Blurb", value=f"```{champion_data['blurb']}```", inline=False
+        )
         embed.add_field(name="Stats",
                         value="**HP**: {:.2f} (+{:.2f})\n"
                               "**HP Reg**: {:.2f} (+{:.2f})\n"
@@ -479,12 +483,12 @@ async def lastgame(ctx, stat):
 
         player_list.sort(key=lambda x: x.dmg_to_champions + x.dmg_to_objectives, reverse=True)
 
-        players = list(player.summoner_name[0:4] for player in player_list)
+        players = [player.summoner_name[:4] for player in player_list]
         damage_legend = ['Champion Damage', 'Objective Damage']
         pos = np.arange(len(players))
         bar_width = 0.80
-        x = list(player.dmg_to_champions for player in player_list)
-        y = list(player.dmg_to_objectives for player in player_list)
+        x = [player.dmg_to_champions for player in player_list]
+        y = [player.dmg_to_objectives for player in player_list]
         # 956D28
         fig, ax = plt.subplots(nrows=1, ncols=1)
         ax.set_facecolor("#303136")
@@ -505,8 +509,13 @@ async def lastgame(ctx, stat):
             champion_name = champion_list[str(player.champion_id)]['name'].replace("'", "").replace(" ", "").lower()
             role_emoji_name, role_emoji_code = get_role_emoji(player)
             champ_emoji_name, champ_emoji_code = get_champion_emoji(champion_name)
-            summoner += "<:{}:{}> <:{}:{}> {}\n".format(champ_emoji_name, champ_emoji_code, role_emoji_name,
-                                                        role_emoji_code, player.summoner_name[0:15])
+            summoner += "<:{}:{}> <:{}:{}> {}\n".format(
+                champ_emoji_name,
+                champ_emoji_code,
+                role_emoji_name,
+                role_emoji_code,
+                player.summoner_name[:15],
+            )
             dmg_to_champions += "{:,}\n".format(player.dmg_to_champions)
             dmg_to_objectives += "{:,}\n".format(player.dmg_to_objectives)
         embed = discord.Embed(
